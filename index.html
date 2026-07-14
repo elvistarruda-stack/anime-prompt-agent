@@ -3,42 +3,51 @@ from flask_cors import CORS
 from groq import Groq
 import os
 
-# Inicializa o Flask
 app = Flask(__name__)
-CORS(app)  # Libera o acesso para o index.html não ser bloqueado
+# Permite que qualquer página envie requisições para a API sem bloqueio de segurança
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# Configura a IA usando a chave que você salvou na Vercel
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+# Garante que o código não quebre se a chave estiver faltando
+api_key = os.environ.get("GROQ_API_KEY")
+client = Groq(api_key=api_key) if api_key else None
 
-@app.route("/api/generate", methods=["POST"])
+@app.route("/api/generate", methods=["POST", "OPTIONS"])
 def generate_prompt():
-    data = request.json or {}
-    user_idea = data.get("idea", "")
-    
-    if not user_idea:
-        return jsonify({"error": "Nenhuma ideia enviada"}), 400
-        
+    # Trata requisições de checagem do navegador (Preflight)
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+
+    if not client:
+        return jsonify({"error": "Chave GROQ_API_KEY nao configurada na Vercel."}), 500
+
     try:
+        data = request.get_json(silent=True) or {}
+        user_idea = data.get("idea", "").strip()
+        
+        if not user_idea:
+            return jsonify({"error": "Por favor, digite uma ideia antes!"}), 400
+            
         system_instruction = (
-            "Você é o Anime Prompt Inspector. Sua tarefa é transformar uma ideia simples de anime "
-            "em um prompt altamente detalhado, profissional e otimizado para geradores de imagens (como Midjourney ou Stable Diffusion). "
-            "Retorne APENAS o prompt final otimizado em inglês, sem introduções ou explicações adicionais."
+            "You are the Anime Prompt Inspector. Your job is to expand the user's basic anime idea "
+            "into a highly detailed, professional prompt optimized for AI image generators like Midjourney or Stable Diffusion. "
+            "Output ONLY the final detailed prompt in English. Do not include any introduction, conversational filler, or side comments."
         )
         
         completion = client.chat.completions.create(
             model="llama-3.3-70b-specdec",
             messages=[
                 {"role": "system", "content": system_instruction},
-                {"role": "user", "content": f"Transforme essa ideia em um prompt de arte de anime incrível: {user_idea}"}
+                {"role": "user", "content": f"Expand this concept into a stunning anime art prompt: {user_idea}"}
             ]
         )
         
         generated_text = completion.choices.message.content
-        return jsonify({"prompt": generated_text})
+        return jsonify({"prompt": generated_text}), 200
         
     except Exception as e:
-        # Se der erro na Groq, avisa qual foi o erro real na tela
-        return jsonify({"error": str(e)}), 500
+        # Se a Groq der erro (ex: chave inválida), o site vai te mostrar o erro real em texto
+        return jsonify({"error": f"Erro na API da Groq: {str(e)}"}), 500
 
-# Linha obrigatória para a Vercel identificar o app Flask
-app = app
+# Força o Flask a rodar localmente caso necessário
+if __name__ == "__main__":
+    app.run(debug=True)
