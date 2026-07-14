@@ -6,6 +6,7 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+# Configura a IA usando a variável de ambiente salva na Vercel
 api_key = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=api_key) if api_key else None
 
@@ -27,6 +28,7 @@ def generate_prompt():
             "Output ONLY the final detailed prompt in English. Do not include any introduction, conversational filler, or side comments."
         )
         
+        # Modelo atualizado e ativo na Groq
         completion = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
@@ -35,9 +37,9 @@ def generate_prompt():
             ]
         )
         
-        generated_text = completion.choices.message.content
+        # Correção definitiva para ler o objeto da resposta sem quebrar
+        generated_text = completion.choices[0].message.content
         return jsonify({"prompt": generated_text}), 200
         
     except Exception as e:
         return jsonify({"error": f"Erro na API da Groq: {str(e)}"}), 500
-
