@@ -40,3 +40,4 @@ def generate_prompt():
         
     except Exception as e:
         return jsonify({"error": f"Erro na API da Groq: {str(e)}"}), 500
+
