@@ -28,7 +28,7 @@ def generate_prompt():
         )
         
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-specdec",
+            model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": system_instruction},
                 {"role": "user", "content": f"Expand this concept into a stunning anime art prompt: {user_idea}"}
