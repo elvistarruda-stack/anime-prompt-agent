@@ -1,121 +1,44 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anime Prompt Inspector</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background-color: #1e293b;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-        }
-        h1 {
-            color: #38bdf8;
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
-        input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #475569;
-            border-radius: 6px;
-            background-color: #334155;
-            color: white;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #38bdf8;
-            color: #0f172a;
-            border: none;
-            padding: 12px 20px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #0ea5e9;
-        }
-        button:disabled {
-            background-color: #475569;
-            cursor: not-allowed;
-        }
-        .result-box {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #0f172a;
-            border-radius: 6px;
-            border: 1px solid #38bdf8;
-            text-align: left;
-            word-wrap: break-word;
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Anime Prompt Inspector 🔍</h1>
-        <p>Digite sua ideia para gerar um prompt incrível:</p>
-        <input type="text" id="userIdea" placeholder="Ex: Guerreiro cyber-samurai em Neo Tokyo">
-        <button id="generateBtn" onclick="generatePrompt()">GERAR PROMPT</button>
-        <div id="resultBox" class="result-box"></div>
-    </div>
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from groq import Groq
+import os
 
-    <script>
-        async function generatePrompt() {
-            const ideaInput = document.getElementById('userIdea');
-            const generateBtn = document.getElementById('generateBtn');
-            const resultBox = document.getElementById('resultBox');
-            
-            if (!ideaInput.value.trim()) {
-                alert('Por favor, digite uma ideia antes!');
-                return;
-            }
-            
-            generateBtn.disabled = true;
-            generateBtn.innerText = 'GERANDO...';
-            resultBox.style.display = 'none';
-            
-            try {
-                const response = await fetch('/api/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ idea: ideaInput.value })
-                });
-                
-                const data = await response.json();
-                
-                if (data.prompt) {
-                    resultBox.innerText = data.prompt;
-                    resultBox.style.display = 'block';
-                } else {
-                    alert('Erro: ' + (data.error || 'Erro desconhecido'));
-                }
-            } catch (err) {
-                alert('Erro ao conectar com o servidor.');
-                console.error(err);
-            } finally {
-                generateBtn.disabled = false;
-                generateBtn.innerText = 'GERAR PROMPT';
-            }
-        }
-    </script>
-</body>
-</html>
+# Inicializa o Flask
+app = Flask(__name__)
+CORS(app)  # Libera o acesso para o index.html não ser bloqueado
+
+# Configura a IA usando a chave que você salvou na Vercel
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+@app.route("/api/generate", methods=["POST"])
+def generate_prompt():
+    data = request.json or {}
+    user_idea = data.get("idea", "")
+    
+    if not user_idea:
+        return jsonify({"error": "Nenhuma ideia enviada"}), 400
+        
+    try:
+        system_instruction = (
+            "Você é o Anime Prompt Inspector. Sua tarefa é transformar uma ideia simples de anime "
+            "em um prompt altamente detalhado, profissional e otimizado para geradores de imagens (como Midjourney ou Stable Diffusion). "
+            "Retorne APENAS o prompt final otimizado em inglês, sem introduções ou explicações adicionais."
+        )
+        
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-specdec",
+            messages=[
+                {"role": "system", "content": system_instruction},
+                {"role": "user", "content": f"Transforme essa ideia em um prompt de arte de anime incrível: {user_idea}"}
+            ]
+        )
+        
+        generated_text = completion.choices.message.content
+        return jsonify({"prompt": generated_text})
+        
+    except Exception as e:
+        # Se der erro na Groq, avisa qual foi o erro real na tela
+        return jsonify({"error": str(e)}), 500
+
+# Linha obrigatória para a Vercel identificar o app Flask
+app = app
