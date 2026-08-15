@@ -69,7 +69,7 @@ def generate_prompt():
             temperature=0.4,
         )
         
-        result_prompt = chat_completion.choices.message.content.strip()
+        result_prompt = chat_completion.choices[0].message.content.strip()
         return jsonify({"prompt": result_prompt})
 
     except Exception as e:
