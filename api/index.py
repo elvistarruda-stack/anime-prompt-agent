@@ -36,7 +36,7 @@ def generate_prompt():
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"User Anime Scene: {user_idea}"}
             ],
-            model="llama-3.3-70b-specdec",
+            model="llama-3.3-70b-versatile",
             temperature=0.1,  # Temperatura quase zero para garantir obediência cega ao formato
         )
         
