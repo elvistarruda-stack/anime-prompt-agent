@@ -37,7 +37,8 @@ def generate_prompt():
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"Ideia do usuário: {user_idea}"}
             ],
-            model="llama3-8b-8192", # Ou o modelo que você já estava usando
+            model="llama-3.1-8b-instant",
+ # Ou o modelo que você já estava usando
             temperature=0.5,
         )
         
