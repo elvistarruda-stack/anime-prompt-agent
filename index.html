@@ -18,7 +18,7 @@
         
         /* Grid de Botões/Badges */
         .grid-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
-        .option-btn { background-color: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .option-btn { background-color: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.2s; outline: none; }
         .option-btn:hover { border-color: #38bdf8; color: #f8fafc; }
         .option-btn.active { background-color: #38bdf8; border-color: #38bdf8; color: #090d16; }
 
@@ -50,8 +50,8 @@
     <div class="group">
         <div class="section-title">Ancoragem Visual <span>(Como você enviará os arquivos no Vidu)</span></div>
         <div class="grid-options" id="imageModeGroup">
-            <button class="option-btn active" onclick="selectOption('imageMode', '1-img', this)">1 Imagem de Referência</button>
-            <button class="option-btn" onclick="selectOption('imageMode', '2-img', this)">2 Imagens (Início/Fim)</button>
+            <button class="option-btn active" data-value="1-img" onclick="selectSingle('imageModeGroup', this)">1 Imagem de Referência</button>
+            <button class="option-btn" data-value="2-img" onclick="selectSingle('imageModeGroup', this)">2 Imagens (Início/Fim)</button>
         </div>
     </div>
 
@@ -59,22 +59,22 @@
     <div class="group">
         <div class="section-title">Movimento de Câmera Dominante <span>(Selecione apenas 1 para evitar artefatos)</span></div>
         <div class="grid-options" id="cameraGroup">
-            <button class="option-btn" onclick="selectOption('camera', 'tracking shot', this)">tracking shot</button>
-            <button class="option-btn" onclick="selectOption('camera', 'dolly in', this)">dolly in</button>
-            <button class="option-btn" onclick="selectOption('camera', 'dolly out', this)">dolly out</button>
-            <button class="option-btn" onclick="selectOption('camera', 'pan left', this)">pan left</button>
-            <button class="option-btn" onclick="selectOption('camera', 'pan right', this)">pan right</button>
-            <button class="option-btn" onclick="selectOption('camera', 'tilt up', this)">tilt up</button>
-            <button class="option-btn" onclick="selectOption('camera', 'tilt down', this)">tilt down</button>
-            <button class="option-btn" onclick="selectOption('camera', 'orbit camera', this)">orbit</button>
-            <button class="option-btn" onclick="selectOption('camera', 'push in', this)">push in</button>
-            <button class="option-btn" onclick="selectOption('camera', 'pull back', this)">pull back</button>
-            <button class="option-btn" onclick="selectOption('camera', 'slight handheld camera shake', this)">handheld (leve)</button>
-            <button class="option-btn" onclick="selectOption('camera', 'low angle shot', this)">low angle</button>
-            <button class="option-btn" onclick="selectOption('camera', 'high angle shot', this)">high angle</button>
-            <button class="option-btn" onclick="selectOption('camera', 'over-the-shoulder shot', this)">over-the-shoulder</button>
-            <button class="option-btn" onclick="selectOption('camera', 'close-up shot', this)">close-up</button>
-            <button class="option-btn" onclick="selectOption('camera', 'wide shot', this)">wide shot</button>
+            <button class="option-btn" data-value="tracking shot" onclick="selectCamera(this)">tracking shot</button>
+            <button class="option-btn" data-value="dolly in" onclick="selectCamera(this)">dolly in</button>
+            <button class="option-btn" data-value="dolly out" onclick="selectCamera(this)">dolly out</button>
+            <button class="option-btn" data-value="pan left" onclick="selectCamera(this)">pan left</button>
+            <button class="option-btn" data-value="pan right" onclick="selectCamera(this)">pan right</button>
+            <button class="option-btn" data-value="tilt up" onclick="selectCamera(this)">tilt up</button>
+            <button class="option-btn" data-value="tilt down" onclick="selectCamera(this)">tilt down</button>
+            <button class="option-btn" data-value="orbit camera" onclick="selectCamera(this)">orbit</button>
+            <button class="option-btn" data-value="push in" onclick="selectCamera(this)">push in</button>
+            <button class="option-btn" data-value="pull back" onclick="selectCamera(this)">pull back</button>
+            <button class="option-btn" data-value="slight handheld camera shake" onclick="selectCamera(this)">handheld (leve)</button>
+            <button class="option-btn" data-value="low angle shot" onclick="selectCamera(this)">low angle</button>
+            <button class="option-btn" data-value="high angle shot" onclick="selectCamera(this)">high angle</button>
+            <button class="option-btn" data-value="over-the-shoulder shot" onclick="selectCamera(this)">over-the-shoulder</button>
+            <button class="option-btn" data-value="close-up shot" onclick="selectCamera(this)">close-up</button>
+            <button class="option-btn" data-value="wide shot" onclick="selectCamera(this)">wide shot</button>
         </div>
     </div>
 
@@ -82,8 +82,8 @@
     <div class="group">
         <div class="section-title">Ritmo & Tempo da Animação <span>(Controla a velocidade do motor de física)</span></div>
         <div class="grid-options" id="paceGroup">
-            <button class="option-btn active" onclick="selectOption('pace', '4s-fast', this)">4s - Ação Rápida / Impacto</button>
-            <button class="option-btn" onclick="selectOption('pace', '8s-slow', this)">8s - Fluidez Contínua / Lenta</button>
+            <button class="option-btn active" data-value="4s-fast" onclick="selectSingle('paceGroup', this)">4s - Ação Rápida / Impacto</button>
+            <button class="option-btn" data-value="8s-slow" onclick="selectSingle('paceGroup', this)">8s - Fluidez Contínua / Lenta</button>
         </div>
     </div>
 
@@ -107,24 +107,21 @@
 </div>
 
 <script>
-    // Estado das escolhas do usuário
-    const selections = {
-        imageMode: '1-img',
-        camera: '',
-        pace: '4s-fast'
-    };
+    // Funções simplificadas para clique nos botões
+    function selectSingle(groupId, element) {
+        const buttons = document.getElementById(groupId).querySelectorAll('.option-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+    }
 
-    function selectOption(category, value, element) {
-        // Remove classe ativa dos irmãos
-        const siblings = element.parentNode.querySelectorAll('.option-btn');
-        siblings.forEach(btn => btn.classList.remove('active'));
+    function selectCamera(element) {
+        const buttons = document.getElementById('cameraGroup').querySelectorAll('.option-btn');
+        const isAlreadyActive = element.classList.contains('active');
         
-        // Se clicar no mesmo botão de câmera que já está ativo, ele desmarca (opcional)
-        if (category === 'camera' && selections.camera === value) {
-            selections.camera = '';
-        } else {
+        buttons.forEach(btn => btn.classList.remove('active'));
+        
+        if (!isAlreadyActive) {
             element.classList.add('active');
-            selections[category] = value;
         }
     }
 
@@ -141,23 +138,13 @@
         button.innerText = 'Orquestrando Coreografia Sakuga...';
         resultContainer.style.display = 'none';
 
-        // Montando o contexto estruturado para enviar à API da Groq
+        // Captura os valores selecionados direto dos botões ativos
+        const activeImgMode = document.getElementById('imageModeGroup').querySelector('.option-btn.active').getAttribute('data-value');
+        const activePace = document.getElementById('paceGroup').querySelector('.option-btn.active').getAttribute('data-value');
+        
+        const activeCameraBtn = document.getElementById('cameraGroup').querySelector('.option-btn.active');
+        const activeCamera = activeCameraBtn ? activeCameraBtn.getAttribute('data-value') : '';
+
         const fullPayload = {
             idea: input.value,
-            imageMode: selections.imageMode,
-            camera: selections.camera,
-            pace: selections.pace
-        };
-
-        try {
-            const response = await fetch('/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(fullPayload)
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                resultText.innerText = data.prompt;
-                
+            imageMode: activeImgMode,
