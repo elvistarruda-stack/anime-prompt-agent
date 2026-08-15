@@ -1,11 +1,12 @@
 import os
 from flask import Flask, request, jsonify
-from groq import Groq
+from openai import OpenAI
 
 app = Flask(__name__)
 
-# Inicializa o cliente conectado na API da Groq
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+# Conecta diretamente na API oficial da OpenAI (ChatGPT)
+# Certifique-se de colocar sua chave na Vercel com o nome OPENAI_API_KEY
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 @app.route('/api/generate', methods=['POST'])
 def generate_prompt():
@@ -15,38 +16,40 @@ def generate_prompt():
     if not user_idea:
         return jsonify({"error": "Nenhuma ideia fornecida"}), 400
 
-    # Instrução cirúrgica para o modelo gigante de 120B
+    # Instrução cirúrgica e sem brechas que força a estrutura Sakuga que você desenhou
     system_prompt = (
-        "You are an expert anime director. Translate the user prompt into a short, single-sentence Vidu AI video prompt in English.\n\n"
-        "MANDATORY FORMAT:\n"
-        "Your response must be a single continuous sentence of technical terms in lowercase, separated ONLY by commas. "
-        "Do NOT write titles, do NOT use brackets [], do NOT use bullet points, do NOT give explanations.\n\n"
-        "REQUIRED TEMPLATE STRUCTURE:\n"
-        "[technical camera movements and framing], [character physical actions and sakuga animation physics], [safety restrictions]\n\n"
-        "CRITICAL RULES:\n"
-        "- Never repeat camera terms or actions.\n"
-        "- Do not alucinate. Do not add dust, explosions, or background elements unless requested by the user.\n"
-        "- The prompt MUST end exactly with this safety block: 'smooth motion, clean linear movement, no motion blur artifacts, quick but controlled, sound effects only, no music'"
+        "You are an elite Sakuga Anime Director and professional prompt engineer for Vidu AI.\n"
+        "Your sole task is to transform the user's raw scene description into a clean, technical video prompt in English.\n\n"
+        "STRICT STRUCTURE REQUIREMENT:\n"
+        "The output must be exactly one single continuous line of lowercase text, separated only by commas, following this exact sequence:\n"
+        "1. [CAMERA MOVEMENT & FRAMING]: Use technical terms requested or implied (e.g., tracking shot, dolly in/out, pan, tilt, orbit, push in, pull back, handheld, low/high angle, over-the-shoulder, close-up, wide shot).\n"
+        "2. [CHARACTER ACTIONS & PHYSICS]: Describe clear physical movement and weight (e.g., character walking forward, hair simulation flowing, clothes waving).\n"
+        "3. [SAKUGA STYLE & PACE]: Dynamic fluid animation weight and speed.\n"
+        "4. [LIGHTING & ATMOSPHERE]: Cinematic lighting according to the scene.\n"
+        "5. [SAFETY TRAWLS]: End the line exactly with these words: 'smooth motion, clean linear movement, no motion blur artifacts, quick but controlled, sound effects only, no music'\n\n"
+        "CRITICAL FORBIDDEN ACTIONS:\n"
+        "- NEVER use brackets [] or category titles in the final output.\n"
+        "- NEVER repeat camera terms or actions.\n"
+        "- NEVER hallucinate debris, explosions, dust, or background items unless explicitly requested by the user.\n"
+        "- Output ONLY the direct English prompt. No chat, no intros, no quotes, no explanations."
     )
 
     try:
-        # Acionando o modelo de 120B da sua lista da Groq
-        chat_completion = client.chat.completions.create(
+        # Chamada oficial da API do ChatGPT
+        response = client.chat.completions.create(
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"User Anime Scene Idea: {user_idea}"}
+                {"role": "user", "content": f"User Idea: {user_idea}"}
             ],
-            model="gpt-oss-120b",
-            temperature=0.1,  # Travado no mínimo para ele seguir o padrão cegamente
+            model="gpt-4o-mini",
+            temperature=0.1  # Temperatura baixa para travar qualquer comportamento criativo
         )
         
-        result_prompt = chat_completion.choices[0].message.content.strip()
+        result_prompt = response.choices[0].message.content.strip()
         
-        # Limpeza bruta de segurança para remover qualquer colchete ou aspa teimosa
+        # Limpeza bruta redundante para garantir que nenhum colchete passe para a tela
         result_prompt = result_prompt.replace("[", "").replace("]", "")
         if result_prompt.startswith('"') and result_prompt.endswith('"'):
-            result_prompt = result_prompt[1:-1]
-        if result_prompt.startswith("'") and result_prompt.endswith("'"):
             result_prompt = result_prompt[1:-1]
             
         return jsonify({"prompt": result_prompt.lower()})
