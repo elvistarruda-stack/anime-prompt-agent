@@ -16,7 +16,6 @@
         .section-title span { color: #64748b; font-weight: 400; text-transform: none; }
         .group { margin-bottom: 24px; }
         
-        /* Grid de Botões/Badges */
         .grid-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
         .option-btn { background-color: #1f2937; border: 1px solid #374151; color: #94a3b8; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.2s; outline: none; }
         .option-btn:hover { border-color: #38bdf8; color: #f8fafc; }
@@ -29,7 +28,6 @@
         .action-btn:hover { background-color: #0ea5e9; }
         .action-btn:disabled { background-color: #374151; color: #64748b; cursor: not-allowed; }
         
-        /* Caixa de Resultado Avançada */
         .result-box { display: none; margin-top: 28px; background-color: #090d16; border: 1px solid #38bdf8; border-radius: 8px; padding: 20px; position: relative; }
         .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .result-title { font-size: 12px; color: #38bdf8; font-weight: 700; text-transform: uppercase; }
@@ -46,7 +44,6 @@
     <h1>Anime Prompt Inspector 🔍</h1>
     <div class="subtitle">Direção Sakuga de Câmera & Física Avançada para Vidu AI</div>
     
-    <!-- Modo de Referência -->
     <div class="group">
         <div class="section-title">Ancoragem Visual <span>(Como você enviará os arquivos no Vidu)</span></div>
         <div class="grid-options" id="imageModeGroup">
@@ -55,7 +52,6 @@
         </div>
     </div>
 
-    <!-- Movimento de Câmera Dominante -->
     <div class="group">
         <div class="section-title">Movimento de Câmera Dominante <span>(Selecione apenas 1 para evitar artefatos)</span></div>
         <div class="grid-options" id="cameraGroup">
@@ -78,7 +74,6 @@
         </div>
     </div>
 
-    <!-- Ritmo da Animação -->
     <div class="group">
         <div class="section-title">Ritmo & Tempo da Animação <span>(Controla a velocidade do motor de física)</span></div>
         <div class="grid-options" id="paceGroup">
@@ -87,7 +82,6 @@
         </div>
     </div>
 
-    <!-- Ação Geral e Descrição -->
     <div class="group">
         <div class="section-title">Ação do Personagem & Física <span>(Descreva o que acontece em Português)</span></div>
         <textarea id="ideaInput" placeholder="Ex: Guerreiro de anime golpeando com espada, cabelo balançando violentamente com faíscas elétricas ao redor..."></textarea>
@@ -95,7 +89,6 @@
 
     <button id="generateBtn" class="action-btn" onclick="generatePrompt()">Gerar Prompt Otimizado</button>
 
-    <!-- Resultados -->
     <div id="resultContainer" class="result-box">
         <div class="result-header">
             <div class="result-title">Prompt Final Sakuga (Pronto para o Vidu)</div>
@@ -107,7 +100,6 @@
 </div>
 
 <script>
-    // Funções simplificadas para clique nos botões
     function selectSingle(groupId, element) {
         const buttons = document.getElementById(groupId).querySelectorAll('.option-btn');
         buttons.forEach(btn => btn.classList.remove('active'));
@@ -117,9 +109,7 @@
     function selectCamera(element) {
         const buttons = document.getElementById('cameraGroup').querySelectorAll('.option-btn');
         const isAlreadyActive = element.classList.contains('active');
-        
         buttons.forEach(btn => btn.classList.remove('active'));
-        
         if (!isAlreadyActive) {
             element.classList.add('active');
         }
@@ -138,13 +128,25 @@
         button.innerText = 'Orquestrando Coreografia Sakuga...';
         resultContainer.style.display = 'none';
 
-        // Captura os valores selecionados direto dos botões ativos
         const activeImgMode = document.getElementById('imageModeGroup').querySelector('.option-btn.active').getAttribute('data-value');
         const activePace = document.getElementById('paceGroup').querySelector('.option-btn.active').getAttribute('data-value');
-        
         const activeCameraBtn = document.getElementById('cameraGroup').querySelector('.option-btn.active');
         const activeCamera = activeCameraBtn ? activeCameraBtn.getAttribute('data-value') : '';
 
         const fullPayload = {
             idea: input.value,
             imageMode: activeImgMode,
+            camera: activeCamera,
+            pace: activePace
+        };
+
+        try {
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(fullPayload)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
