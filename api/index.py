@@ -35,7 +35,7 @@ def generate_prompt():
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"User Anime Scene: {user_idea}"}
             ],
-            model="llama-3.3-70b",
+            model="llama-3.1-8b-instant",
             temperature=0.1,  # Trava o modelo para obedecer friamente
         )
         
